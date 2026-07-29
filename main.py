@@ -1,7 +1,6 @@
 # main.py
 from manager import HouseManager
-from gui_app import HouseGUIApp
-import tkinter as tk
+import sys
 
 
 def run_cli(manager):
@@ -108,16 +107,21 @@ def main():
 
     print("Добро пожаловать в программу управления домом!")
     print("Выберите режим запуска:")
-    print("1. Графический интерфейс (GUI)")
+    print("1. Графический интерфейс (Kivy GUI)")
     print("2. Командная строка (CLI)")
 
     choice = input("Введите 1 или 2: ").strip()
 
     if choice == '1':
-        root = tk.Tk()
-        app = HouseGUIApp(root, manager)
-        root.mainloop()
-        manager.save_data()  # Сохраняем данные при закрытии GUI
+        try:
+            from kivy_gui_app import HouseGUIApp
+            app = HouseGUIApp()
+            app.manager = manager  # Передаем загруженный менеджер в приложение Kivy
+            app.run()
+        except ImportError:
+            print("Kivy не установлен. Установите его с помощью 'pip install kivy'.")
+            print("Запускаю CLI...")
+            run_cli(manager)
     elif choice == '2':
         run_cli(manager)
     else:
