@@ -79,7 +79,20 @@ class Floor:
 
     def get_room(self, room_number):
         """Получает объект комнаты по номеру."""
-        return self.rooms.get(room_number)
+        # Пробуем получить комнату напрямую
+        room = self.rooms.get(room_number)
+        if room:
+            return room
+        # Если не найдено, пробуем преобразовать тип ключа
+        # (комнаты могут храниться как строки или как числа)
+        if isinstance(room_number, int):
+            return self.rooms.get(str(room_number))
+        elif isinstance(room_number, str):
+            try:
+                return self.rooms.get(int(room_number))
+            except ValueError:
+                pass
+        return None
 
     def to_dict(self):
         """Преобразует объект этажа в словарь для JSON."""
