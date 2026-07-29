@@ -1,14 +1,13 @@
 # main.py
 from manager import HouseManager
+from gui_app import HouseGUIApp
+import tkinter as tk
 
 
-def main():
-    """Главная функция для запуска интерактивного меню."""
-    manager = HouseManager()
-    manager.load_data()  # Загружаем данные при старте
-
+def run_cli(manager):
+    """Функция для запуска командной строки (ваш старый main)."""
     while True:
-        print("\n=== Меню Управления Домом ===")
+        print("\n=== Меню Управления Домом (CLI) ===")
         print("1. Добавить этаж")
         print("2. Удалить этаж")
         print("3. Добавить комнату на этаж")
@@ -100,6 +99,30 @@ def main():
             break
         else:
             print("Неверный выбор. Пожалуйста, выберите от 1 до 11.")
+
+
+def main():
+    """Главная функция для запуска интерактивного меню выбора режима."""
+    manager = HouseManager()
+    manager.load_data()  # Загружаем данные при старте
+
+    print("Добро пожаловать в программу управления домом!")
+    print("Выберите режим запуска:")
+    print("1. Графический интерфейс (GUI)")
+    print("2. Командная строка (CLI)")
+
+    choice = input("Введите 1 или 2: ").strip()
+
+    if choice == '1':
+        root = tk.Tk()
+        app = HouseGUIApp(root, manager)
+        root.mainloop()
+        manager.save_data()  # Сохраняем данные при закрытии GUI
+    elif choice == '2':
+        run_cli(manager)
+    else:
+        print("Неверный выбор. Запускаю CLI по умолчанию.")
+        run_cli(manager)
 
 
 if __name__ == "__main__":
