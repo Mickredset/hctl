@@ -1,8 +1,11 @@
 # main.py
+from flask import Flask, render_template, request, jsonify
 from manager import HouseManager
-import sys
+import utils
+import sys  # Импортируем sys для выхода
 
 
+# --- Функции CLI (скопированы из вашего старого main.py или адаптированы) ---
 def run_cli(manager):
     """Функция для запуска командной строки (ваш старый main)."""
     while True:
@@ -100,34 +103,121 @@ def run_cli(manager):
             print("Неверный выбор. Пожалуйста, выберите от 1 до 11.")
 
 
+# --- Конец функций CLI ---
+
+def run_kivy_gui(manager):
+    """Функция для запуска Kivy GUI."""
+    try:
+        from kivy_gui_app import HouseGUIApp
+        # --- ИСПРАВЛЕНО: Используем правильное имя параметра ---
+        app = HouseGUIApp(manager_instance=manager) # Передаем загруженный менеджер в приложение Kivy
+        app.run()
+        # manager.save_data() вызывается в on_stop Kivy приложения
+    except ImportError:
+        print("Kivy не установлен. Установите его с помощью 'pip install kivy'.")
+        print("Запускаю CLI...")
+        run_cli(manager) # Возврат к CLI, если Kivy недоступен
+
+
+# --- Настройка Flask приложения ---
+app = Flask(__name__)
+
+# Создаем и загружаем менеджер один раз, перед запуском CLI или Flask
+manager = HouseManager()
+manager.load_data()  # Загружаем данные при запуске программы
+
+
+# --- Маршруты Flask (остаются как есть) ---
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+
+@app.route('/api/structure', methods=['GET'])
+def get_house_structure():
+    return jsonify(manager.get_house_structure())
+
+
+@app.route('/api/floors', methods=['POST'])
+def add_floor():
+    data = request.get_json()
+    floor_number = data.get('floor_number')
+    if manager.add_floor(floor_number):
+        manager.save_data()  # Сохраняем после успешного добавления
+        return jsonify({"success": True, "message": f"Этаж {floor_number} добавлен."})
+    else:
+        return jsonify({"success": False, "message": f"Этаж {floor_number} уже существует."}), 400
+
+
+@app.route('/api/rooms', methods=['POST'])
+def add_room():
+    data = request.get_json()
+    floor_number = data.get('floor_number')
+    room_number = data.get('room_number')
+    room_type = data.get('room_type', 'Обычная')
+    if manager.add_room_to_floor(floor_number, room_number, room_type):
+        manager.save_data()
+        return jsonify({"success": True, "message": f"Комната {room_number} добавлена."})
+    else:
+        return jsonify(
+            {"success": False, "message": f"Комната {room_number} уже существует на этаже {floor_number}."}), 400
+
+
+@app.route('/api/users', methods=['POST'])
+def create_user():
+    data = request.get_json()
+    name = data.get('name')
+    age = data.get('age')
+    email = data.get('email')
+    if name:
+        user_id = manager.create_user(name, age, email)
+        manager.save_data()
+        return jsonify({"success": True, "user_id": user_id})
+    else:
+        return jsonify({"success": False, "message": "Имя пользователя обязательно."}), 400
+
+
+@app.route('/api/assign', methods=['POST'])
+def assign_user():
+    data = request.get_json()
+    user_id = data.get('user_id')
+    floor_number = data.get('floor_number')
+    room_number = data.get('room_number')
+    success = manager.assign_user_to_room(user_id, floor_number, room_number)
+    if success:
+        manager.save_data()
+        return jsonify({"success": True})
+    else:
+        return jsonify({"success": False, "message": "Не удалось назначить пользователя."}), 400
+
+
+# --- Выбор режима запуска ---
 def main():
     """Главная функция для запуска интерактивного меню выбора режима."""
-    manager = HouseManager()
-    manager.load_data()  # Загружаем данные при старте
-
     print("Добро пожаловать в программу управления домом!")
     print("Выберите режим запуска:")
-    print("1. Графический интерфейс (Kivy GUI)")
-    print("2. Командная строка (CLI)")
+    print("1. Командная строка (CLI)")
+    print("2. Графический интерфейс (Kivy GUI)")
+    print("3. Веб-интерфейс (Flask, запустить сервер)")
 
-    choice = input("Введите 1 или 2: ").strip()
+    choice = input("Введите 1, 2 или 3: ").strip()
 
     if choice == '1':
-        try:
-            from kivy_gui_app import HouseGUIApp
-            app = HouseGUIApp()
-            app.manager = manager  # Передаем загруженный менеджер в приложение Kivy
-            app.run()
-        except ImportError:
-            print("Kivy не установлен. Установите его с помощью 'pip install kivy'.")
-            print("Запускаю CLI...")
-            run_cli(manager)
+        print("Запуск в режиме командной строки...")
+        run_cli(manager)  # Передаем загруженный менеджер в CLI
+        # manager.save_data() уже вызывается внутри CLI при выходе
     elif choice == '2':
-        run_cli(manager)
+        print("Запуск графического интерфейса Kivy...")
+        run_kivy_gui(manager)  # Передаем загруженный менеджер в Kivy GUI
+    elif choice == '3':
+        print("Запуск веб-сервера Flask...")
+        print("Откройте браузер и перейдите по адресу: http://127.0.0.1:5000")
+        app.run(debug=True)  # Запускаем Flask сервер
+        # manager.save_data() можно вызвать при graceful shutdown Flask, но CLI/Kivy это делают явно
     else:
         print("Неверный выбор. Запускаю CLI по умолчанию.")
         run_cli(manager)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

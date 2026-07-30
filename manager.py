@@ -170,8 +170,8 @@ class HouseManager:
                 users_list.append(user_info)
         return users_list
 
-    # --- Новые методы для GUI ---
-
+    # --- Новые методы для API / GUI ---
+    # --- Этот метод был добавлен ---
     def get_all_floors_numbers(self):
         """Возвращает список номеров этажей."""
         return sorted(self.floors.keys())
@@ -198,3 +198,23 @@ class HouseManager:
     def get_user_by_id(self, user_id):
         """Возвращает объект User по ID."""
         return self.users.get(user_id)
+
+    def get_house_structure(self):
+        """Возвращает структуру дома в формате, удобном для JSON."""
+        structure = {}
+        for floor_num in self.get_all_floors_numbers():
+            structure[floor_num] = {}
+            for room_num in self.get_rooms_on_floor(floor_num):
+                room_obj = self.floors[floor_num].get_room(room_num)
+                # Получаем имена жильцов по ID
+                resident_names = []
+                for uid in room_obj.residents:
+                    user = self.get_user_by_id(uid)
+                    if user:
+                        resident_names.append(user.name)
+                structure[floor_num][room_num] = {
+                    "type": room_obj.room_type,
+                    "residents": resident_names  # Теперь это список имен
+                }
+        return structure
+    # -----------------------------------
