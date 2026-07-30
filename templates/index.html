@@ -1,0 +1,69 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Управление Домом</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Управление Домом</h1>
+
+        <!-- Форма добавления этажа -->
+        <div class="form-group">
+            <label for="floorNumberInput">Номер этажа:</label>
+            <input type="number" id="floorNumberInput" placeholder="Например, 1">
+            <button id="addFloorBtn">Добавить Этаж</button>
+        </div>
+
+        <!-- Форма добавления комнаты -->
+        <div class="form-group">
+            <label for="addRoomFloorNumberInput">Номер этажа:</label>
+            <input type="number" id="addRoomFloorNumberInput" placeholder="Например, 1">
+            <label for="addRoomNumberInput">Номер комнаты:</label>
+            <input type="text" id="addRoomNumberInput" placeholder="Например, 1A">
+            <label for="addRoomTypeInput">Тип комнаты:</label>
+            <input type="text" id="addRoomTypeInput" value="Обычная">
+            <button id="addRoomBtn">Добавить Комната</button>
+        </div>
+
+        <!-- Форма создания пользователя -->
+        <div class="form-group">
+            <label for="userNameInput">Имя пользователя:</label>
+            <input type="text" id="userNameInput" placeholder="Иван Иванов">
+            <label for="userAgeInput">Возраст (необязательно):</label>
+            <input type="number" id="userAgeInput" placeholder="30">
+            <label for="userEmailInput">Email (необязательно):</label>
+            <input type="text" id="userEmailInput" placeholder="ivan@example.com">
+            <button id="createUserBtn">Создать Пользователя</button>
+        </div>
+
+        <!-- Форма назначения пользователя в комнату -->
+        <div class="form-group">
+            <label for="assignUserIdInput">ID пользователя:</label>
+            <input type="number" id="assignUserIdInput" placeholder="Например, 1">
+            <label for="assignFloorNumberInput">Номер этажа:</label>
+            <input type="number" id="assignFloorNumberInput" placeholder="Например, 1">
+            <label for="assignRoomNumberInput">Номер комнаты:</label>
+            <input type="text" id="assignRoomNumberInput" placeholder="Например, 1A">
+            <button id="assignUserBtn">Назначить в Комната</button>
+        </div>
+
+        <!-- Отображение структуры дома -->
+        <div class="house-tree">
+            <h2>Структура Дома</h2>
+            <div id="houseTree"></div>
+        </div>
+
+        <!-- Отображение жильцов -->
+        <div class="residents-list">
+            <div id="residentsList">
+                <p>Выберите комнату, чтобы посмотреть жильцов.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
