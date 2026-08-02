@@ -8,3 +8,6 @@
 /bot/velyaminovo_cache.json
 .env
 /.index/
+/.buildozer/
+/build_log.txt
+/build_config.json

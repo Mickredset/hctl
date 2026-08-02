@@ -1,0 +1,45 @@
+name: Build Kivy APK
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch: # Позволяет запускать вручную
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    container: kivy/python-for-android:latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt || true
+        pip install kivy
+
+    - name: Build APK with p4a
+      run: |
+        p4a apk --private=. \
+          --package=com.mycompany.myapp \
+          --name="hctl" \
+          --version=1.0.0 \
+          --permission=INTERNET,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE \
+          --requirements=kivy==2.3.0,python-dateutil,pyjnius,android \
+          --bootstrap=sdl2 \
+          --orientation=portrait \
+          --input=main.py \
+          --debug
+        
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: my-app-apk
+        path: dist/*.apk
